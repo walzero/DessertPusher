@@ -1,12 +1,11 @@
 package com.walterrezende.dessertpusher
 
 import android.content.ActivityNotFoundException
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleObserver
@@ -16,6 +15,8 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity(), LifecycleObserver {
     private var revenue = 0
     private var dessertsSold = 0
+
+    private lateinit var dessertTimer: DessertTimer
 
     // Contains all the views
     private lateinit var binding: ActivityMainBinding
@@ -59,12 +60,28 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
             onDessertClicked()
         }
 
+        dessertTimer = DessertTimer(this.lifecycle)
+
+        if(savedInstanceState != null) {
+            revenue = savedInstanceState.getInt(KEY_REVENUE)
+            dessertsSold = savedInstanceState.getInt(DESSERTS_SOLD)
+            dessertTimer.secondsCount = savedInstanceState.getInt(DESSERT_TIMER)
+        }
+
         // Set the TextViews to the right values
         binding.revenue = revenue
         binding.amountSold = dessertsSold
 
         // Make sure the correct dessert is showing
         binding.dessertButton.setImageResource(currentDessert.imageId)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_REVENUE, revenue)
+        outState.putInt(DESSERTS_SOLD, dessertsSold)
+        outState.putInt(DESSERT_TIMER, dessertTimer.secondsCount)
+        Timber.i("onSaveInstanceState called")
     }
 
     override fun onStart() {
@@ -157,5 +174,11 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
             R.id.shareMenuButton -> onShare()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    companion object {
+        private const val KEY_REVENUE = "key_revenue"
+        private const val DESSERTS_SOLD = "desserts_sold"
+        private const val DESSERT_TIMER = "dessert_timer"
     }
 }
